@@ -107,6 +107,15 @@ type Mutation {
     last_name: String
     email: String
     phone: String) : User
+
+    updateUser(_id : ID,
+      username: String
+      first_name: String
+      last_name: String
+      email: String
+      phone: String) : User
+
+      delUser(_id : ID) : User
 }
 `
 
@@ -124,12 +133,29 @@ const resolvers = {
   },
 
   Mutation : {
+
     createUser : async (_,{username,first_name,last_name,email,phone}) => {
       const body = {username,first_name,last_name,email,phone}
-        const createUser = await db.collection('users').insertOne(body);
+        await db.collection('users').insertOne(body);
         return body;
+    },
+
+    updateUser : async (_, {_id, username,first_name,last_name,email,phone}) => {
+      const body = {username,first_name,last_name,email,phone}
+      await db.collection('users').updateOne({_id : new mongoose.Types.ObjectId(_id)}, {
+        $set : body
+      })
+      return body
+    },
+
+    delUser : async (_, {_id}) => {
+      await db.collection('users').deleteOne({_id : new mongoose.Types.ObjectId(_id)})
+      await db.collection('newusers').deleteOne({_id : new mongoose.Types.ObjectId(_id)})
+      return _id
     }
-  }
+
+}
+
 }
 
 const createApolloServer = () => {
